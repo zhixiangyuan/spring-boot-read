@@ -20,6 +20,7 @@ import org.springframework.util.ClassUtils;
 
 /**
  * An enumeration of possible types of web application.
+ * Web 应用类型
  *
  * @author Andy Wilkinson
  * @author Brian Clozel
@@ -30,23 +31,33 @@ public enum WebApplicationType {
 	/**
 	 * The application should not run as a web application and should not start an
 	 * embedded web server.
+	 *
+	 * 非内嵌的 Web 应用
 	 */
 	NONE,
 
 	/**
 	 * The application should run as a servlet-based web application and should start an
 	 * embedded servlet web server.
+	 *
+	 * 内嵌的 Servlet Web 应用，例如说，Spring MVC
 	 */
 	SERVLET,
 
 	/**
 	 * The application should run as a reactive web application and should start an
 	 * embedded reactive web server.
+	 *
+	 * 内嵌的 Reactive Web 应用，例如说 Spring Webflux
 	 */
 	REACTIVE;
 
-	private static final String[] SERVLET_INDICATOR_CLASSES = { "javax.servlet.Servlet",
-			"org.springframework.web.context.ConfigurableWebApplicationContext" };
+	private static final String[] SERVLET_INDICATOR_CLASSES = {
+			// 这个是 java 中定义 Servlet 的类
+			"javax.servlet.Servlet",
+			// 这个应该是 Spring MVC 的 ApplicationContext
+			"org.springframework.web.context.ConfigurableWebApplicationContext"
+	};
 
 	private static final String WEBMVC_INDICATOR_CLASS = "org.springframework.web.servlet.DispatcherServlet";
 
@@ -58,16 +69,25 @@ public enum WebApplicationType {
 
 	private static final String REACTIVE_APPLICATION_CONTEXT_CLASS = "org.springframework.boot.web.reactive.context.ReactiveWebApplicationContext";
 
+	/** @return 从 classpath 上，判断 Web 应用类型 */
 	static WebApplicationType deduceFromClasspath() {
-		if (ClassUtils.isPresent(WEBFLUX_INDICATOR_CLASS, null) && !ClassUtils.isPresent(WEBMVC_INDICATOR_CLASS, null)
-				&& !ClassUtils.isPresent(JERSEY_INDICATOR_CLASS, null)) {
+		// 这里可以看出哪怕引入了 webflux，但是同时引入了 mvc，那么 spring boot 还是会将其当作 mvc 应用来看待
+		if (
+				// 存在 Spring Webflux 的类
+				ClassUtils.isPresent(WEBFLUX_INDICATOR_CLASS, null)
+						// Spring MVC 的类不存在
+						&& !ClassUtils.isPresent(WEBMVC_INDICATOR_CLASS, null)
+						&& !ClassUtils.isPresent(JERSEY_INDICATOR_CLASS, null)
+		) {
+			// 那么就是 WebApplicationType.REACTIVE 类型的应用
 			return WebApplicationType.REACTIVE;
 		}
 		for (String className : SERVLET_INDICATOR_CLASSES) {
-			if (!ClassUtils.isPresent(className, null)) {
+			if (!ClassUtils.isPresent(className, null)) { // 不存在 Servlet 的类
 				return WebApplicationType.NONE;
 			}
 		}
+		// 这只直接返回的原因是，引入 Spring MVC 时，如果是内嵌的 Web 应用，会引入 Servlet 的类
 		return WebApplicationType.SERVLET;
 	}
 
@@ -84,8 +104,7 @@ public enum WebApplicationType {
 	private static boolean isAssignable(String target, Class<?> type) {
 		try {
 			return ClassUtils.resolveClassName(target, null).isAssignableFrom(type);
-		}
-		catch (Throwable ex) {
+		} catch (Throwable ex) {
 			return false;
 		}
 	}

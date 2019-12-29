@@ -196,7 +196,7 @@ public class SpringApplication {
 	private static final Log logger = LogFactory.getLog(SpringApplication.class);
 
 	/**
-	 * 主要的 Java Config 类的数组
+	 * 主要的 Java Config 类的数组，todo 这里的 Java 配置类数组，配置类是指的是 @Configuration 标注过的类么
 	 */
 	private Set<Class<?>> primarySources;
 
@@ -282,6 +282,7 @@ public class SpringApplication {
 	public SpringApplication(ResourceLoader resourceLoader, Class<?>... primarySources) {
 		this.resourceLoader = resourceLoader;
 		Assert.notNull(primarySources, "PrimarySources must not be null");
+		// 这里的 primarySources 就是我们一般在启动传入的 Application 那个类
 		this.primarySources = new LinkedHashSet<>(Arrays.asList(primarySources));
 		this.webApplicationType = WebApplicationType.deduceFromClasspath();
 		// 初始化 initializers 属性
