@@ -44,12 +44,15 @@ final class AutoConfigurationMetadataLoader {
 
 	static AutoConfigurationMetadata loadMetadata(ClassLoader classLoader, String path) {
 		try {
+			// 获得 PATH 对应的 URL
 			Enumeration<URL> urls = (classLoader != null) ? classLoader.getResources(path)
 					: ClassLoader.getSystemResources(path);
+			// 遍历 URL 数组，读取到 properties 中
 			Properties properties = new Properties();
 			while (urls.hasMoreElements()) {
 				properties.putAll(PropertiesLoaderUtils.loadProperties(new UrlResource(urls.nextElement())));
 			}
+			// 将 properties 装换成 PropertiesAutoConfigurationMetadata 对象
 			return loadMetadata(properties);
 		}
 		catch (IOException ex) {
@@ -65,7 +68,7 @@ final class AutoConfigurationMetadataLoader {
 	 * {@link AutoConfigurationMetadata} implementation backed by a properties file.
 	 */
 	private static class PropertiesAutoConfigurationMetadata implements AutoConfigurationMetadata {
-
+		/** 对 Properties 做包装，这里包装的意义应该就是为了更好的获取 properties 中的属性 */
 		private final Properties properties;
 
 		PropertiesAutoConfigurationMetadata(Properties properties) {

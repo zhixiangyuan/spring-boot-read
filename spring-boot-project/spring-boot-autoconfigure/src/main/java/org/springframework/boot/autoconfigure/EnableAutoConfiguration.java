@@ -65,7 +65,7 @@ import org.springframework.core.io.support.SpringFactoriesLoader;
  * {@link Conditional @Conditional} beans (most often using
  * {@link ConditionalOnClass @ConditionalOnClass} and
  * {@link ConditionalOnMissingBean @ConditionalOnMissingBean} annotations).
- *
+ * 主要功能自动配置包，它会获取主程序类所在的包路径，并将包路径（包括子包）下的所有组件注册到 Spring IOC 容器中
  * @author Phillip Webb
  * @author Stephane Nicoll
  * @since 1.0.0
