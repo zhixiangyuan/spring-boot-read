@@ -45,6 +45,9 @@ public interface SpringApplicationRunListener {
 	/**
 	 * Called once the environment has been prepared, but before the
 	 * {@link ApplicationContext} has been created.
+	 *
+	 * 当环境变量全部准备好的时候调用该方法
+	 *
 	 * @param environment the environment
 	 */
 	default void environmentPrepared(ConfigurableEnvironment environment) {
@@ -53,6 +56,9 @@ public interface SpringApplicationRunListener {
 	/**
 	 * Called once the {@link ApplicationContext} has been created and prepared, but
 	 * before sources have been loaded.
+	 *
+	 * 当 context 初步准备好的时候调用该方法
+	 *
 	 * @param context the application context
 	 */
 	default void contextPrepared(ConfigurableApplicationContext context) {

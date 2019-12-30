@@ -4,6 +4,8 @@ package me.yuanzx.controller;
  * @author zhixiang.yuan
  * @since 2019/12/28 00:15:34
  */
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.Banner;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;

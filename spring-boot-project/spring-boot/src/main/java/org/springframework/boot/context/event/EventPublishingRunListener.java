@@ -44,17 +44,18 @@ import org.springframework.util.ErrorHandler;
  * @since 1.0.0
  */
 public class EventPublishingRunListener implements SpringApplicationRunListener, Ordered {
-
+	/** Spring 应用 */
 	private final SpringApplication application;
-
+	/** 参数合集 */
 	private final String[] args;
-
+	/** 事件广播器 */
 	private final SimpleApplicationEventMulticaster initialMulticaster;
 
 	public EventPublishingRunListener(SpringApplication application, String[] args) {
 		this.application = application;
 		this.args = args;
 		this.initialMulticaster = new SimpleApplicationEventMulticaster();
+		// 添加应用的监听器们，到 initialMulticaster 中
 		for (ApplicationListener<?> listener : application.getListeners()) {
 			this.initialMulticaster.addApplicationListener(listener);
 		}
