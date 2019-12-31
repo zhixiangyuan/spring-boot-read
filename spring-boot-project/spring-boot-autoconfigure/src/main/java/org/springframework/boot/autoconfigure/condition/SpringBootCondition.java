@@ -80,7 +80,7 @@ public abstract class SpringBootCondition implements Condition {
 		MethodMetadata methodMetadata = (MethodMetadata) metadata;
 		return methodMetadata.getDeclaringClassName() + "#" + methodMetadata.getMethodName();
 	}
-
+	/** 记录结果 */
 	protected final void logOutcome(String classOrMethodName, ConditionOutcome outcome) {
 		if (this.logger.isTraceEnabled()) {
 			this.logger.trace(getLogMessage(classOrMethodName, outcome));

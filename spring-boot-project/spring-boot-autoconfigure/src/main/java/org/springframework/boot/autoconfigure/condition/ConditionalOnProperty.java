@@ -121,7 +121,7 @@ public @interface ConditionalOnProperty {
 	 */
 	String[] name() default {};
 
-	/**
+	/** 设置属性的值
 	 * The string representation of the expected value for the properties. If not
 	 * specified, the property must <strong>not</strong> be equal to {@code false}.
 	 * @return the expected value
