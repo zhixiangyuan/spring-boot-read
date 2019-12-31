@@ -48,7 +48,7 @@ import org.springframework.context.annotation.Conditional;
 @Conditional(OnBeanCondition.class)
 public @interface ConditionalOnSingleCandidate {
 
-	/**
+	/** 当指定的 Bean 在容器中只有一个，或者虽然有多个但是指定了主要的 Bean 则满足条件
 	 * The class type of bean that should be checked. The condition matches if a bean of
 	 * the class specified is contained in the {@link BeanFactory} and a primary candidate
 	 * exists in case of multiple instances.

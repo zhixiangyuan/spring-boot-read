@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Conditional;
 /**
  * {@link Conditional @Conditional} that only matches when the application context is a
  * not a web application context.
- *
+ * 当前项目不是 Web 项目则满足条件
  * @author Dave Syer
  * @since 1.0.0
  */

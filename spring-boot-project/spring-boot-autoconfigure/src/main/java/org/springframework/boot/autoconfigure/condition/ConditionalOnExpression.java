@@ -37,7 +37,7 @@ import org.springframework.context.annotation.Conditional;
 @Conditional(OnExpressionCondition.class)
 public @interface ConditionalOnExpression {
 
-	/**
+	/** 基于 SpEL 表达式作为判断条件
 	 * The SpEL expression to evaluate. Expression should return {@code true} if the
 	 * condition passes or {@code false} if it fails.
 	 * @return the SpEL expression

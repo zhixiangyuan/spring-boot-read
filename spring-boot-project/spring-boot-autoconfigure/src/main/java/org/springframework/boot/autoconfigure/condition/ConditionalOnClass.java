@@ -43,7 +43,7 @@ import org.springframework.context.annotation.Conditional;
 @Conditional(OnClassCondition.class)
 public @interface ConditionalOnClass {
 
-	/**
+	/** 指定的类必须存在
 	 * The classes that must be present. Since this annotation is parsed by loading class
 	 * bytecode, it is safe to specify classes here that may ultimately not be on the
 	 * classpath, only if this annotation is directly on the affected component and

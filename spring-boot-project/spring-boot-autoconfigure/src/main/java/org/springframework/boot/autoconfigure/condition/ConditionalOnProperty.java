@@ -109,7 +109,7 @@ public @interface ConditionalOnProperty {
 	 */
 	String prefix() default "";
 
-	/**
+	/** 指定的属性是否有值
 	 * The name of the properties to test. If a prefix has been defined, it is applied to
 	 * compute the full key of each property. For instance if the prefix is
 	 * {@code app.config} and one value is {@code my-value}, the full key would be

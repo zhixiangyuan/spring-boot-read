@@ -39,7 +39,7 @@ import org.springframework.context.annotation.Conditional;
 @Conditional(OnJndiCondition.class)
 public @interface ConditionalOnJndi {
 
-	/**
+	/** 在 JNDI 存在的条件下差在指定的为止？？？
 	 * JNDI Locations, one of which must exist. If no locations are specific the condition
 	 * matches solely based on the presence of an {@link InitialContext}.
 	 * @return the JNDI locations

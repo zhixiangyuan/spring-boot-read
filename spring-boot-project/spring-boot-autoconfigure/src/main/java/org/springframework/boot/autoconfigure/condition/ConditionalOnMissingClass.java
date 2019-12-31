@@ -37,7 +37,7 @@ import org.springframework.context.annotation.Conditional;
 @Conditional(OnClassCondition.class)
 public @interface ConditionalOnMissingClass {
 
-	/**
+	/** 指定名称的类必须不存在
 	 * The names of the classes that must not be present.
 	 * @return the names of the classes that must not be present
 	 */

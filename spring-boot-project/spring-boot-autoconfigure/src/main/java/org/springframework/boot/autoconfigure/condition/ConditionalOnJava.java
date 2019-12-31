@@ -48,7 +48,7 @@ public @interface ConditionalOnJava {
 	 */
 	Range range() default Range.EQUAL_OR_NEWER;
 
-	/**
+	/** 基于 Java 版本作为判断条件
 	 * The {@link JavaVersion} to check for. Use {@link #range()} to specify whether the
 	 * configured value is an upper-exclusive or lower-inclusive boundary.
 	 * @return the java version
