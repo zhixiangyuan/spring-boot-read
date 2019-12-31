@@ -44,6 +44,10 @@ public interface AutoConfigurationImportFilter {
 
 	/**
 	 * Apply the filter to the given auto-configuration class candidates.
+	 *
+	 * 传入了 String[] autoConfigurationClasses，返回 boolean[]，这两个值一一对应，true 表示
+	 * 引入，false 表示不引入
+	 *
 	 * @param autoConfigurationClasses the auto-configuration classes being considered.
 	 * This array may contain {@code null} elements. Implementations should not change the
 	 * values in this array.

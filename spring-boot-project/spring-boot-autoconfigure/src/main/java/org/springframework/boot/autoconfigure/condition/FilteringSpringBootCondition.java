@@ -33,7 +33,7 @@ import org.springframework.util.CollectionUtils;
 /**
  * Abstract base class for a {@link SpringBootCondition} that also implements
  * {@link AutoConfigurationImportFilter}.
- *
+ * 这个接口实现了 AutoConfigurationImportFilter，所以所有继承这个类的别的类都实现了 AutoConfigurationImportFilter 这个接口
  * @author Phillip Webb
  */
 abstract class FilteringSpringBootCondition extends SpringBootCondition
@@ -45,18 +45,28 @@ abstract class FilteringSpringBootCondition extends SpringBootCondition
 
 	@Override
 	public boolean[] match(String[] autoConfigurationClasses, AutoConfigurationMetadata autoConfigurationMetadata) {
+		// 获得 ConditionEvaluationReport 对象
 		ConditionEvaluationReport report = ConditionEvaluationReport.find(this.beanFactory);
+		// 执行批量的匹配，并返回匹配结果
 		ConditionOutcome[] outcomes = getOutcomes(autoConfigurationClasses, autoConfigurationMetadata);
+		// 创建 match 数组
 		boolean[] match = new boolean[outcomes.length];
+		// 遍历 outcomes 结果数组
 		for (int i = 0; i < outcomes.length; i++) {
+			// 赋值 match 数组
+			// 如果返回结果结果为空，也认为匹配
 			match[i] = (outcomes[i] == null || outcomes[i].isMatch());
+			// 如果不匹配，打印日志和记录
 			if (!match[i] && outcomes[i] != null) {
+				// 打印日志
 				logOutcome(autoConfigurationClasses[i], outcomes[i]);
+				// 记录
 				if (report != null) {
 					report.recordConditionEvaluation(autoConfigurationClasses[i], this, outcomes[i]);
 				}
 			}
 		}
+		// 返回 match 数组
 		return match;
 	}
 
@@ -83,15 +93,19 @@ abstract class FilteringSpringBootCondition extends SpringBootCondition
 
 	protected final List<String> filter(Collection<String> classNames, ClassNameFilter classNameFilter,
 			ClassLoader classLoader) {
+		// 如果为空，则返回空结果
 		if (CollectionUtils.isEmpty(classNames)) {
 			return Collections.emptyList();
 		}
+		// 创建 matches 数组
 		List<String> matches = new ArrayList<>(classNames.size());
+		// 遍历 classNames 数组，使用 ClassNameFilter 进行判断，是否匹配
 		for (String candidate : classNames) {
 			if (classNameFilter.matches(candidate, classLoader)) {
 				matches.add(candidate);
 			}
 		}
+		// 返回
 		return matches;
 	}
 
@@ -111,7 +125,7 @@ abstract class FilteringSpringBootCondition extends SpringBootCondition
 	}
 
 	protected enum ClassNameFilter {
-
+		/** 指定类存在 */
 		PRESENT {
 
 			@Override
@@ -120,7 +134,7 @@ abstract class FilteringSpringBootCondition extends SpringBootCondition
 			}
 
 		},
-
+		/** 指定类不存在 */
 		MISSING {
 
 			@Override
@@ -131,8 +145,9 @@ abstract class FilteringSpringBootCondition extends SpringBootCondition
 		};
 
 		abstract boolean matches(String className, ClassLoader classLoader);
-
+		/** 判断是否存在 */
 		static boolean isPresent(String className, ClassLoader classLoader) {
+			// 通过加载类是否报异常来判断是否存在
 			if (classLoader == null) {
 				classLoader = ClassUtils.getDefaultClassLoader();
 			}
