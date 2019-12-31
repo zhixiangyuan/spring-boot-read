@@ -64,7 +64,7 @@ import org.springframework.context.annotation.Conditional;
 @Conditional(OnBeanCondition.class)
 public @interface ConditionalOnBean {
 
-	/**
+	/** 当 BeanFactory 中包含指定的 Bean 类型时满足条件
 	 * The class types of beans that should be checked. The condition matches when beans
 	 * of all classes specified are contained in the {@link BeanFactory}.
 	 * @return the class types of beans to check

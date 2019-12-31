@@ -65,7 +65,7 @@ import org.springframework.context.annotation.Conditional;
 @Conditional(OnBeanCondition.class)
 public @interface ConditionalOnMissingBean {
 
-	/**
+	/** 检查 bean 的类型，匹配条件是 BeanFactory 中没有指定的 bean 时满足条件
 	 * The class types of beans that should be checked. The condition matches when no bean
 	 * of each class specified is contained in the {@link BeanFactory}.
 	 * @return the class types of beans to check

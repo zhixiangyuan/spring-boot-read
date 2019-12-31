@@ -136,6 +136,8 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 
 	@Override
 	public Class<? extends Group> getImportGroup() {
+		// 这里返回 AutoConfigurationGroup，那么后续便会调用
+		// AutoConfigurationGroup 的 process 和 selectImports
 		return AutoConfigurationGroup.class;
 	}
 
@@ -295,6 +297,7 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 	}
 
 	protected final <T> List<T> removeDuplicates(List<T> list) {
+		// 通过 list -> set -> list 来消除重复的数据
 		return new ArrayList<>(new LinkedHashSet<>(list));
 	}
 
@@ -304,11 +307,16 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 	}
 
 	private void fireAutoConfigurationImportEvents(List<String> configurations, Set<String> exclusions) {
+		// 加载指定类型 AutoConfigurationImportListener 对应的，在 META-INF/spring.factories 里的类名的数组
 		List<AutoConfigurationImportListener> listeners = getAutoConfigurationImportListeners();
 		if (!listeners.isEmpty()) {
+			// 创建 AutoConfigurationImportEvent 事件
 			AutoConfigurationImportEvent event = new AutoConfigurationImportEvent(this, configurations, exclusions);
+			// 遍历 AutoConfigurationImportListener 监听器们，逐个通知
 			for (AutoConfigurationImportListener listener : listeners) {
+				// 设置 AutoConfigurationImportListener 的属性
 				invokeAwareMethods(listener);
+				// 通知
 				listener.onAutoConfigurationImportEvent(event);
 			}
 		}
@@ -429,21 +437,26 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 			if (this.autoConfigurationEntries.isEmpty()) {
 				return Collections.emptyList();
 			}
-			Set<String> allExclusions = this.autoConfigurationEntries.stream()
-					.map(AutoConfigurationEntry::getExclusions).flatMap(Collection::stream).collect(Collectors.toSet());
-			Set<String> processedConfigurations = this.autoConfigurationEntries.stream()
-					.map(AutoConfigurationEntry::getConfigurations).flatMap(Collection::stream)
+			Set<String> allExclusions = this.autoConfigurationEntries
+					.stream()
+					.map(AutoConfigurationEntry::getExclusions)
+					.flatMap(Collection::stream)
+					.collect(Collectors.toSet());
+			Set<String> processedConfigurations = this.autoConfigurationEntries
+					.stream()
+					.map(AutoConfigurationEntry::getConfigurations)
+					.flatMap(Collection::stream)
 					.collect(Collectors.toCollection(LinkedHashSet::new));
 			processedConfigurations.removeAll(allExclusions);
-
-			return sortAutoConfigurations(processedConfigurations, getAutoConfigurationMetadata()).stream()
+			return sortAutoConfigurations(processedConfigurations, getAutoConfigurationMetadata())
+					.stream()
 					.map((importClassName) -> new Entry(this.entries.get(importClassName), importClassName))
 					.collect(Collectors.toList());
 		}
 
 		private AutoConfigurationMetadata getAutoConfigurationMetadata() {
 			if (this.autoConfigurationMetadata == null) {
-				// 这里会对这个属性进行初始化
+				// 这里会对这个属性进行初始化，加载一个空的自动配置元数据
 				this.autoConfigurationMetadata = AutoConfigurationMetadataLoader.loadMetadata(this.beanClassLoader);
 			}
 			return this.autoConfigurationMetadata;
