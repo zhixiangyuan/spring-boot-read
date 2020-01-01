@@ -37,7 +37,7 @@ import org.springframework.util.StringUtils;
  */
 public class ContextIdApplicationContextInitializer
 		implements ApplicationContextInitializer<ConfigurableApplicationContext>, Ordered {
-
+	/** 优先级 */
 	private int order = Ordered.LOWEST_PRECEDENCE - 10;
 
 	public void setOrder(int order) {
@@ -51,16 +51,22 @@ public class ContextIdApplicationContextInitializer
 
 	@Override
 	public void initialize(ConfigurableApplicationContext applicationContext) {
+		// 获得（创建） ContextId 对象
 		ContextId contextId = getContextId(applicationContext);
+		// 设置到 applicationContext 中
 		applicationContext.setId(contextId.getId());
+		// 注册到 contextId 到 Spring 容器中
 		applicationContext.getBeanFactory().registerSingleton(ContextId.class.getName(), contextId);
 	}
 
 	private ContextId getContextId(ConfigurableApplicationContext applicationContext) {
+		// 获得父 ApplicationContext 对象
 		ApplicationContext parent = applicationContext.getParent();
+		// 情况一，如果父 ApplicationContext 存在，且有对应的 ContextId 对象，则使用它生成当前容器的 ContextId 对象
 		if (parent != null && parent.containsBean(ContextId.class.getName())) {
 			return parent.getBean(ContextId.class).createChildId();
 		}
+		// 情况二，创建 ContextId 对象
 		return new ContextId(getApplicationId(applicationContext.getEnvironment()));
 	}
 
@@ -73,15 +79,15 @@ public class ContextIdApplicationContextInitializer
 	 * The ID of a context.
 	 */
 	class ContextId {
-
+		/** 递增序列 */
 		private final AtomicLong children = new AtomicLong(0);
-
+		/** 编号 */
 		private final String id;
 
 		ContextId(String id) {
 			this.id = id;
 		}
-
+		/** 可以看到用这个方法创建子 children 时，children 字段会自增 */
 		ContextId createChildId() {
 			return new ContextId(this.id + "-" + this.children.incrementAndGet());
 		}
