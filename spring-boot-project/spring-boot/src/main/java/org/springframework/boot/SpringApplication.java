@@ -310,12 +310,15 @@ public class SpringApplication {
 		stopWatch.start();
 		ConfigurableApplicationContext context = null;
 		Collection<SpringBootExceptionReporter> exceptionReporters = new ArrayList<>();
-		// 配置 headless 属性。这个逻辑，可以无视，和 AWT 相关
+		// 设置系统属性 java.awt.headless，为 true 则启用 headless 模式支持
 		configureHeadlessProperty();
-		// 获得 SpringApplicationRunListener 的数组，并启动监听
+		// 通过 SpringFactoriesLoader 检索 META-INF/spring.factories，
+		// 找到声明的所有 SpringApplicationRunListener 的实现类并将其实例化，
 		SpringApplicationRunListeners listeners = getRunListeners(args);
+		// 之后逐个调用其 started() 方法，广播 SpringBoot 要开始执行了
 		listeners.starting();
 		try {
+			// 初始化参数
 			ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
 			// 加载属性配置。执行完成后，所有的 environment 的属性都会加载进来，包括 application.properties 和外部的属性配置
 			ConfigurableEnvironment environment = prepareEnvironment(listeners, applicationArguments);
@@ -627,6 +630,7 @@ public class SpringApplication {
 	 * @see #setApplicationContextClass(Class)
 	 */
 	protected ConfigurableApplicationContext createApplicationContext() {
+		// 根据 webApplicationType 类型，获得 ApplicationContext 类型
 		Class<?> contextClass = this.applicationContextClass;
 		if (contextClass == null) {
 			try {

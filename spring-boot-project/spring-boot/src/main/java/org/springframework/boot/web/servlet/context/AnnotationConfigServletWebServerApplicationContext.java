@@ -59,9 +59,9 @@ public class AnnotationConfigServletWebServerApplicationContext extends ServletW
 	private final AnnotatedBeanDefinitionReader reader;
 
 	private final ClassPathBeanDefinitionScanner scanner;
-
+	/** 需要被 {@link #reader} 读取的注册类们 */
 	private final Set<Class<?>> annotatedClasses = new LinkedHashSet<>();
-
+    /** 需要被 {@link #scanner} 扫描的包 */
 	private String[] basePackages;
 
 	/**
@@ -95,7 +95,9 @@ public class AnnotationConfigServletWebServerApplicationContext extends ServletW
 	 */
 	public AnnotationConfigServletWebServerApplicationContext(Class<?>... annotatedClasses) {
 		this();
+		// 注册指定的注解的类们
 		register(annotatedClasses);
+		// 初始化 Spring 容器
 		refresh();
 	}
 
@@ -107,7 +109,9 @@ public class AnnotationConfigServletWebServerApplicationContext extends ServletW
 	 */
 	public AnnotationConfigServletWebServerApplicationContext(String... basePackages) {
 		this();
+		// 扫描指定包
 		scan(basePackages);
+		// 初始化 Spring 容器
 		refresh();
 	}
 
@@ -192,16 +196,21 @@ public class AnnotationConfigServletWebServerApplicationContext extends ServletW
 
 	@Override
 	protected void prepareRefresh() {
+		// 清空 scanner 的缓存
 		this.scanner.clearCache();
+		// 调用父类
 		super.prepareRefresh();
 	}
 
 	@Override
 	protected void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+		// 调用父类
 		super.postProcessBeanFactory(beanFactory);
+		// 扫描指定的包
 		if (this.basePackages != null && this.basePackages.length > 0) {
 			this.scanner.scan(this.basePackages);
 		}
+		// 注册指定的注解的类们定的
 		if (!this.annotatedClasses.isEmpty()) {
 			this.reader.register(ClassUtils.toClassArray(this.annotatedClasses));
 		}
