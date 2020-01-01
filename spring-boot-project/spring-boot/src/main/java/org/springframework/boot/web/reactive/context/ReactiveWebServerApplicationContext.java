@@ -40,9 +40,13 @@ import org.springframework.util.StringUtils;
  */
 public class ReactiveWebServerApplicationContext extends GenericReactiveWebApplicationContext
 		implements ConfigurableWebServerApplicationContext {
-
+	/** ServerManager 对象 */
 	private volatile ServerManager serverManager;
-
+	/**
+	 * 通过 {@link #setServerNamespace(String)} 注入
+	 *
+	 * 不过貌似，一直没被注入过，可以暂时先无视
+	 */
 	private String serverNamespace;
 
 	/**
@@ -54,6 +58,7 @@ public class ReactiveWebServerApplicationContext extends GenericReactiveWebAppli
 	/**
 	 * Create a new {@link ReactiveWebServerApplicationContext} with the given
 	 * {@code DefaultListableBeanFactory}.
+	 *
 	 * @param beanFactory the DefaultListableBeanFactory instance to use for this context
 	 */
 	public ReactiveWebServerApplicationContext(DefaultListableBeanFactory beanFactory) {
@@ -64,8 +69,7 @@ public class ReactiveWebServerApplicationContext extends GenericReactiveWebAppli
 	public final void refresh() throws BeansException, IllegalStateException {
 		try {
 			super.refresh();
-		}
-		catch (RuntimeException ex) {
+		} catch (RuntimeException ex) {
 			stopAndReleaseReactiveWebServer();
 			throw ex;
 		}
@@ -76,34 +80,40 @@ public class ReactiveWebServerApplicationContext extends GenericReactiveWebAppli
 		super.onRefresh();
 		try {
 			createWebServer();
-		}
-		catch (Throwable ex) {
+		} catch (Throwable ex) {
 			throw new ApplicationContextException("Unable to start reactive web server", ex);
 		}
 	}
 
 	private void createWebServer() {
+		// 获得 ServerManager 对象
 		ServerManager serverManager = this.serverManager;
+		// 如果不存在，则进行初始化
 		if (serverManager == null) {
 			String webServerFactoryBeanName = getWebServerFactoryBeanName();
 			ReactiveWebServerFactory webServerFactory = getWebServerFactory(webServerFactoryBeanName);
 			boolean lazyInit = getBeanFactory().getBeanDefinition(webServerFactoryBeanName).isLazyInit();
 			this.serverManager = ServerManager.get(webServerFactory, lazyInit);
 		}
+		// 初始化 PropertySource
 		initPropertySources();
 	}
 
 	protected String getWebServerFactoryBeanName() {
 		// Use bean names so that we don't consider the hierarchy
+		// 获得 ServletWebServerFactory 类型对应的 Bean 的名字
 		String[] beanNames = getBeanFactory().getBeanNamesForType(ReactiveWebServerFactory.class);
+		// 如果是 0 个，抛出 ApplicationContextException 异常，因为至少要一个
 		if (beanNames.length == 0) {
 			throw new ApplicationContextException(
 					"Unable to start ReactiveWebApplicationContext due to missing ReactiveWebServerFactory bean.");
 		}
+		// 如果是 > 1 个，抛出 ApplicationContextException 异常，因为不知道初始化哪个
 		if (beanNames.length > 1) {
 			throw new ApplicationContextException("Unable to start ReactiveWebApplicationContext due to multiple "
 					+ "ReactiveWebServerFactory beans : " + StringUtils.arrayToCommaDelimitedString(beanNames));
 		}
+		// 获得 ReactiveWebServerFactory 类型对应的 Bean 对象
 		return beanNames[0];
 	}
 
@@ -115,6 +125,7 @@ public class ReactiveWebServerApplicationContext extends GenericReactiveWebAppli
 	 * Return the {@link ReactiveWebServerFactory} that should be used to create the
 	 * reactive web server. By default this method searches for a suitable bean in the
 	 * context itself.
+	 *
 	 * @return a {@link ReactiveWebServerFactory} (never {@code null})
 	 * @deprecated since 2.2.0 in favor of {@link #getWebServerFactoryBeanName()} and
 	 * {@link #getWebServerFactory(String)}
@@ -126,8 +137,11 @@ public class ReactiveWebServerApplicationContext extends GenericReactiveWebAppli
 
 	@Override
 	protected void finishRefresh() {
+		// 调用父方法
 		super.finishRefresh();
+		// 启动 WebServer
 		WebServer webServer = startReactiveWebServer();
+		// 如果创建 WebServer 成功，发布 ReactiveWebServerInitializedEvent 事件
 		if (webServer != null) {
 			publishEvent(new ReactiveWebServerInitializedEvent(webServer, this));
 		}
@@ -135,13 +149,18 @@ public class ReactiveWebServerApplicationContext extends GenericReactiveWebAppli
 
 	private WebServer startReactiveWebServer() {
 		ServerManager serverManager = this.serverManager;
-		ServerManager.start(serverManager, this::getHttpHandler);
+		// 启动 WebServer
+		ServerManager.start(serverManager,
+				// 获得 HttpHandler
+				this::getHttpHandler);
+		// 获得 WebServer
 		return ServerManager.getWebServer(serverManager);
 	}
 
 	/**
 	 * Return the {@link HttpHandler} that should be used to process the reactive web
 	 * server. By default this method searches for a suitable bean in the context itself.
+	 *
 	 * @return a {@link HttpHandler} (never {@code null}
 	 */
 	protected HttpHandler getHttpHandler() {
@@ -169,8 +188,7 @@ public class ReactiveWebServerApplicationContext extends GenericReactiveWebAppli
 		ServerManager serverManager = this.serverManager;
 		try {
 			ServerManager.stop(serverManager);
-		}
-		finally {
+		} finally {
 			this.serverManager = null;
 		}
 	}
@@ -178,6 +196,7 @@ public class ReactiveWebServerApplicationContext extends GenericReactiveWebAppli
 	/**
 	 * Returns the {@link WebServer} that was created by the context or {@code null} if
 	 * the server has not yet been created.
+	 *
 	 * @return the web server
 	 */
 	@Override
@@ -218,20 +237,27 @@ public class ReactiveWebServerApplicationContext extends GenericReactiveWebAppli
 	 * not to initialize the handler too early.
 	 */
 	static final class ServerManager implements HttpHandler {
-
+		/** WebServer 对象 */
 		private final WebServer server;
 
 		private final boolean lazyInit;
-
+		/** HttpHandler 对象，具体在 {@link #handle(ServerHttpRequest, ServerHttpResponse)} 方法中使用 */
 		private volatile HttpHandler handler;
 
 		private ServerManager(ReactiveWebServerFactory factory, boolean lazyInit) {
-			this.handler = this::handleUninitialized;
+			this.handler = this::handleUninitialized; // 等同于下面的代码
+//          this.handler = new HttpHandler() {
+//                @Override
+//                public Mono<Void> handle(ServerHttpRequest request, ServerHttpResponse response) {
+//                    return handleUninitialized(request, response);
+//                }
+//            };
 			this.server = factory.getWebServer(this);
 			this.lazyInit = lazyInit;
 		}
 
 		private Mono<Void> handleUninitialized(ServerHttpRequest request, ServerHttpResponse response) {
+			// 在 handler 初始化之前调用 handle 的话会走到这里然后抛出异常
 			throw new IllegalStateException("The HttpHandler has not yet been initialized");
 		}
 
@@ -244,6 +270,7 @@ public class ReactiveWebServerApplicationContext extends GenericReactiveWebAppli
 			return this.handler;
 		}
 
+		/** 创建自己的简单静态工厂 */
 		static ServerManager get(ReactiveWebServerFactory factory, boolean lazyInit) {
 			return new ServerManager(factory, lazyInit);
 		}
@@ -254,8 +281,12 @@ public class ReactiveWebServerApplicationContext extends GenericReactiveWebAppli
 
 		static void start(ServerManager manager, Supplier<HttpHandler> handlerSupplier) {
 			if (manager != null && manager.server != null) {
-				manager.handler = manager.lazyInit ? new LazyHttpHandler(Mono.fromSupplier(handlerSupplier))
-						: handlerSupplier.get();
+				// 赋值 handler
+				manager.handler =
+						// 根据是否是懒加载来选用哪个 handler
+						manager.lazyInit ?
+								new LazyHttpHandler(Mono.fromSupplier(handlerSupplier)) : handlerSupplier.get();
+				// 启动 server
 				manager.server.start();
 			}
 		}
@@ -264,8 +295,7 @@ public class ReactiveWebServerApplicationContext extends GenericReactiveWebAppli
 			if (manager != null && manager.server != null) {
 				try {
 					manager.server.stop();
-				}
-				catch (Exception ex) {
+				} catch (Exception ex) {
 					throw new IllegalStateException(ex);
 				}
 			}
