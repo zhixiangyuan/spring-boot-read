@@ -20,7 +20,6 @@ public class MVCApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(MVCApplication.class, args);
-
 	}
 
 }
