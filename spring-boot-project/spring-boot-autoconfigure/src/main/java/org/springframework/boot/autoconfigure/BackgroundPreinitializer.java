@@ -55,66 +55,81 @@ public class BackgroundPreinitializer implements ApplicationListener<SpringAppli
 	 * property is set to {@code true}, no pre-initialization happens and each item is
 	 * initialized in the foreground as it needs to. When the property is {@code false}
 	 * (default), pre initialization runs in a separate thread in the background.
+	 *
 	 * @since 2.1.0
 	 */
 	public static final String IGNORE_BACKGROUNDPREINITIALIZER_PROPERTY_NAME = "spring.backgroundpreinitializer.ignore";
-
+	/** 预初始化任务是否已启动 */
 	private static final AtomicBoolean preinitializationStarted = new AtomicBoolean(false);
-
+	/** 预初始化任务的 CountDownLatch 对象，用于实现等待预初始化任务是否完成 */
 	private static final CountDownLatch preinitializationComplete = new CountDownLatch(1);
 
 	@Override
 	public void onApplicationEvent(SpringApplicationEvent event) {
+		// 如果是开启后台预初始化任务，默认情况下开启
 		if (!Boolean.getBoolean(IGNORE_BACKGROUNDPREINITIALIZER_PROPERTY_NAME)
-				&& event instanceof ApplicationStartingEvent && multipleProcessors()
+				// 是 ApplicationStartingEvent 事件，说明应用正在启动中
+				&& event instanceof ApplicationStartingEvent
+				// 是多核环境
+				&& multipleProcessors()
+				// 预初始化任务未启动
 				&& preinitializationStarted.compareAndSet(false, true)) {
+			// 启动
 			performPreinitialization();
 		}
-		if ((event instanceof ApplicationReadyEvent || event instanceof ApplicationFailedEvent)
-				&& preinitializationStarted.get()) {
+		// 如果是 ApplicationReadyEvent 或 ApplicationFailedEvent 事件，说明应用启动成功后失败，则等待预初始化任务完成
+		if (
+				(event instanceof ApplicationReadyEvent || event instanceof ApplicationFailedEvent)
+						&& preinitializationStarted.get()
+		) {
+			// 判断预初始化任务已经启动
 			try {
+				// 通过 CountDownLatch 实现，预初始化任务执行完成。
 				preinitializationComplete.await();
-			}
-			catch (InterruptedException ex) {
+			} catch (InterruptedException ex) {
 				Thread.currentThread().interrupt();
 			}
 		}
 	}
 
+	/** 判断是否多核环境 */
 	private boolean multipleProcessors() {
 		return Runtime.getRuntime().availableProcessors() > 1;
 	}
 
 	private void performPreinitialization() {
 		try {
+			// 创建线程
 			Thread thread = new Thread(new Runnable() {
 
 				@Override
 				public void run() {
+					// 安全运行每个初始化任务
 					runSafely(new ConversionServiceInitializer());
 					runSafely(new ValidationInitializer());
 					runSafely(new MessageConverterInitializer());
 					runSafely(new JacksonInitializer());
 					runSafely(new CharsetInitializer());
+					// 标记 preinitializationComplete 完成
 					preinitializationComplete.countDown();
 				}
 
 				public void runSafely(Runnable runnable) {
 					try {
 						runnable.run();
-					}
-					catch (Throwable ex) {
+					} catch (Throwable ex) {
 						// Ignore
 					}
 				}
 
 			}, "background-preinit");
+			// 启动线程
 			thread.start();
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 			// This will fail on GAE where creating threads is prohibited. We can safely
 			// continue but startup will be slightly slower as the initialization will now
 			// happen on the main thread.
+			// 标记 preinitializationComplete 完成
 			preinitializationComplete.countDown();
 		}
 	}

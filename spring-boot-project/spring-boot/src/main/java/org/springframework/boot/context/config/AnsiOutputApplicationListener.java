@@ -28,7 +28,7 @@ import org.springframework.core.env.ConfigurableEnvironment;
  * An {@link ApplicationListener} that configures {@link AnsiOutput} depending on the
  * value of the property {@code spring.output.ansi.enabled}. See {@link Enabled} for valid
  * values.
- *
+ * 如果命令行支持彩色输出，那么是否启用彩色输出
  * @author Raphael von der Grün
  * @author Madhura Bhave
  * @since 1.2.0
@@ -39,8 +39,10 @@ public class AnsiOutputApplicationListener
 	@Override
 	public void onApplicationEvent(ApplicationEnvironmentPreparedEvent event) {
 		ConfigurableEnvironment environment = event.getEnvironment();
+		// 根据环境变量 spring.output.ansi.enabled 的值，设置 AnsiOutput.enabled 属性
 		Binder.get(environment).bind("spring.output.ansi.enabled", AnsiOutput.Enabled.class)
 				.ifBound(AnsiOutput::setEnabled);
+		// 根据环境变量 spring.output.ansi.console-available 的值，设置 AnsiOutput.consoleAvailable 属性
 		AnsiOutput.setConsoleAvailable(environment.getProperty("spring.output.ansi.console-available", Boolean.class));
 	}
 
