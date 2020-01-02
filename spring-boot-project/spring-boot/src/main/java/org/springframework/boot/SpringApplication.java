@@ -231,7 +231,7 @@ public class SpringApplication {
 	private List<ApplicationListener<?>> listeners;
 	/** 默认的属性集合 */
 	private Map<String, Object> defaultProperties;
-
+	/** 附加的 profiles 的数组 */
 	private Set<String> additionalProfiles = new HashSet<>();
 
 	private boolean allowBeanDefinitionOverriding;
@@ -551,6 +551,7 @@ public class SpringApplication {
 		MutablePropertySources sources = environment.getPropertySources();
 		// 配置的 defaultProperties
 		if (this.defaultProperties != null && !this.defaultProperties.isEmpty()) {
+			// 注意，这里添加了 defaultProperties
 			sources.addLast(new MapPropertySource("defaultProperties", this.defaultProperties));
 		}
 		// 来自启动参数的，这个启动参数不是 -Dproperty=value 时设置的，而是跟在 java -jar xxx.jar paramter
@@ -585,6 +586,7 @@ public class SpringApplication {
 		Set<String> profiles = new LinkedHashSet<>(this.additionalProfiles);
 		// 这里 environment.getActiveProfiles() 便是获取 spring.profiles.active 的值
 		profiles.addAll(Arrays.asList(environment.getActiveProfiles()));
+		// 将 activeProfiles 的值和 additionalProfiles 合并，再次设置回 activeProfiles
 		environment.setActiveProfiles(StringUtils.toStringArray(profiles));
 	}
 

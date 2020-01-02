@@ -77,7 +77,7 @@ public class SpringApplicationJsonEnvironmentPostProcessor implements Environmen
 	 * The default order for the processor.
 	 */
 	public static final int DEFAULT_ORDER = Ordered.HIGHEST_PRECEDENCE + 5;
-
+	/** 顺序 */
 	private int order = DEFAULT_ORDER;
 
 	@Override
@@ -92,13 +92,19 @@ public class SpringApplicationJsonEnvironmentPostProcessor implements Environmen
 	@Override
 	public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
 		MutablePropertySources propertySources = environment.getPropertySources();
-		propertySources.stream().map(JsonPropertyValue::get).filter(Objects::nonNull).findFirst()
+		propertySources
+				.stream()
+				.map(JsonPropertyValue::get)
+				.filter(Objects::nonNull)
+				.findFirst()
 				.ifPresent((v) -> processJson(environment, v));
 	}
 
 	private void processJson(ConfigurableEnvironment environment, JsonPropertyValue propertyValue) {
+		// 解析 json 字符串，成 Map 对象
 		JsonParser parser = JsonParserFactory.getJsonParser();
 		Map<String, Object> map = parser.parseMap(propertyValue.getJson());
+		// 创建 JsonPropertySource 对象，添加到 environment 中
 		if (!map.isEmpty()) {
 			addJsonPropertySource(environment, new JsonPropertySource(propertyValue, flatten(map)));
 		}
@@ -122,9 +128,11 @@ public class SpringApplicationJsonEnvironmentPostProcessor implements Environmen
 
 	@SuppressWarnings("unchecked")
 	private void extract(String name, Map<String, Object> result, Object value) {
+		// 内嵌的 Map 格式
 		if (value instanceof Map) {
 			flatten(name, result, (Map<String, Object>) value);
 		}
+		// 内嵌的 Collection
 		else if (value instanceof Collection) {
 			int index = 0;
 			for (Object object : (Collection<Object>) value) {
@@ -132,6 +140,7 @@ public class SpringApplicationJsonEnvironmentPostProcessor implements Environmen
 				index++;
 			}
 		}
+		// 普通格式，添加到 result 中
 		else {
 			result.put(name, value);
 		}
@@ -139,7 +148,10 @@ public class SpringApplicationJsonEnvironmentPostProcessor implements Environmen
 
 	private void addJsonPropertySource(ConfigurableEnvironment environment, PropertySource<?> source) {
 		MutablePropertySources sources = environment.getPropertySources();
+		// 获得需要添加到 source 所在的 PropertySource 之前的名字
 		String name = findPropertySource(sources);
+		// 添加到 environment 的 sources 中
+		// 这么做的效果是，source 高于 SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME && JNDI_PROPERTY_SOURCE_NAME 之前
 		if (sources.contains(name)) {
 			sources.addBefore(name, source);
 		}
@@ -149,6 +161,7 @@ public class SpringApplicationJsonEnvironmentPostProcessor implements Environmen
 	}
 
 	private String findPropertySource(MutablePropertySources sources) {
+		// 在 Servlet 环境下，且有 JNDI_PROPERTY_SOURCE_NAME 属性，则返回 StandardServletEnvironment.JNDI_PROPERTY_SOURCE_NAME
 		if (ClassUtils.isPresent(SERVLET_ENVIRONMENT_CLASS, null)) {
 			PropertySource<?> servletPropertySource = sources.stream()
 					.filter((source) -> SERVLET_ENVIRONMENT_PROPERTY_SOURCES.contains(source.getName())).findFirst()
@@ -157,6 +170,7 @@ public class SpringApplicationJsonEnvironmentPostProcessor implements Environmen
 				return servletPropertySource.getName();
 			}
 		}
+		// 否则，返回 SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME 属性
 		return StandardEnvironment.SYSTEM_PROPERTIES_PROPERTY_SOURCE_NAME;
 	}
 
@@ -202,9 +216,12 @@ public class SpringApplicationJsonEnvironmentPostProcessor implements Environmen
 		}
 
 		static JsonPropertyValue get(PropertySource<?> propertySource) {
+			// 遍历 CANDIDATES 数组
 			for (String candidate : CANDIDATES) {
+				// 获得 candidate 对应的属性值
 				Object value = propertySource.getProperty(candidate);
 				if (value instanceof String && StringUtils.hasLength((String) value)) {
+					// 创建 JsonPropertyValue 对象，然后返回
 					return new JsonPropertyValue(propertySource, candidate, (String) value);
 				}
 			}

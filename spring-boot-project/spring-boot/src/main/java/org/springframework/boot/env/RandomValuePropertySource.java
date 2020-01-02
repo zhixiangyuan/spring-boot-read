@@ -72,33 +72,41 @@ public class RandomValuePropertySource extends PropertySource<Random> {
 
 	@Override
 	public Object getProperty(String name) {
+		// 必须以 random. 前缀
 		if (!name.startsWith(PREFIX)) {
 			return null;
 		}
 		if (logger.isTraceEnabled()) {
 			logger.trace("Generating random property for '" + name + "'");
 		}
+		// 根据类型，获得随机值
 		return getRandomValue(name.substring(PREFIX.length()));
 	}
 
 	private Object getRandomValue(String type) {
+		// int
 		if (type.equals("int")) {
 			return getSource().nextInt();
 		}
+		// long
 		if (type.equals("long")) {
 			return getSource().nextLong();
 		}
+		// int 范围
 		String range = getRange(type, "int");
 		if (range != null) {
 			return getNextIntInRange(range);
 		}
+		// long 范围
 		range = getRange(type, "long");
 		if (range != null) {
 			return getNextLongInRange(range);
 		}
+		// uuid
 		if (type.equals("uuid")) {
 			return UUID.randomUUID().toString();
 		}
+		// md5
 		return getRandomBytes();
 	}
 
@@ -138,8 +146,12 @@ public class RandomValuePropertySource extends PropertySource<Random> {
 	}
 
 	public static void addToEnvironment(ConfigurableEnvironment environment) {
-		environment.getPropertySources().addAfter(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
-				new RandomValuePropertySource(RANDOM_PROPERTY_SOURCE_NAME));
+		environment
+				.getPropertySources()
+				.addAfter(
+						StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
+						new RandomValuePropertySource(RANDOM_PROPERTY_SOURCE_NAME)
+				);
 		logger.trace("RandomValuePropertySource add to Environment");
 	}
 
