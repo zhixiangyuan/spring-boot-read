@@ -29,6 +29,12 @@ import org.springframework.util.StringUtils;
 /**
  * Internal utility used to load {@link AutoConfigurationMetadata}.
  *
+ * 获得 {@link #PATH} 对应的 URL 们，这样我们就可以避免去 AutoConfiguration 类上，读取其 Condition 条件了，
+ * 从而避免将不符合条件的 AutoConfiguration 类的字节码，加载到 JVM 中？？？居然会出现不符合条件的字节码，why？
+ *
+ * 而这个文件是由 AutoConfigureAnnotationProcessor 这个类生成的，这个类是一个注解处理器，在编译时完成该操作
+ * 项目在 spring-boot-tools/spring-boot-autoconfigure-processor/ 下
+ *
  * @author Phillip Webb
  */
 final class AutoConfigurationMetadataLoader {
@@ -66,9 +72,11 @@ final class AutoConfigurationMetadataLoader {
 
 	/**
 	 * {@link AutoConfigurationMetadata} implementation backed by a properties file.
+	 *
+	 * 对 Properties 做包装，这里包装的意义应该就是为了更好的获取 properties 中的属性
 	 */
 	private static class PropertiesAutoConfigurationMetadata implements AutoConfigurationMetadata {
-		/** 对 Properties 做包装，这里包装的意义应该就是为了更好的获取 properties 中的属性 */
+
 		private final Properties properties;
 
 		PropertiesAutoConfigurationMetadata(Properties properties) {

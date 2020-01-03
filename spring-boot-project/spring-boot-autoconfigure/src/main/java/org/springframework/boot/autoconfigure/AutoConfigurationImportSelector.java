@@ -469,10 +469,11 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 		}
 
 		private AutoConfigurationMetadata getAutoConfigurationMetadata() {
+			// 不存在，则进行加载
 			if (this.autoConfigurationMetadata == null) {
-				// 这里会对这个属性进行初始化，加载一个空的自动配置元数据
 				this.autoConfigurationMetadata = AutoConfigurationMetadataLoader.loadMetadata(this.beanClassLoader);
 			}
+			// 存在，则直接返回
 			return this.autoConfigurationMetadata;
 		}
 
