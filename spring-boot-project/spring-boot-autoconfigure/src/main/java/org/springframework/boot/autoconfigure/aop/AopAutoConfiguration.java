@@ -44,6 +44,13 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 @ConditionalOnProperty(prefix = "spring.aop", name = "auto", havingValue = "true", matchIfMissing = true)
 public class AopAutoConfiguration {
 
+	/**
+	 * 这里面的逻辑是这样的，根据 proxy-target-class 是 true 还是 false 去触发不同的配置类，
+	 * 这里触发的目的其实是去触发该类上面的 @EnableAspectJAutoProxy 注解，根据这个注解去使用
+	 * 不同的代理策略
+	 */
+
+
 	@Configuration(proxyBeanMethods = false)
 	@EnableAspectJAutoProxy(proxyTargetClass = false)
 	@ConditionalOnProperty(prefix = "spring.aop", name = "proxy-target-class", havingValue = "false",

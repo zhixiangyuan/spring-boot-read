@@ -128,7 +128,7 @@ public @interface ConditionalOnProperty {
 	 */
 	String havingValue() default "";
 
-	/**
+	/** 如果缺少则匹配，false 表示缺少不匹配，true 表示缺少则匹配
 	 * Specify if the condition should match if the property is not set. Defaults to
 	 * {@code false}.
 	 * @return if should match if the property is missing
